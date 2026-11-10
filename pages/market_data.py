@@ -1,15 +1,29 @@
 import streamlit as st
 import pandas as pd
 
-st.title("Market Data Dashboard")
+# Page Configuration
+st.set_page_config(
+    page_title="Market Data Dashboard",
+    page_icon="📈",
+)
 
-# Load dataset
-df = pd.read_csv("stock_data.csv")
+st.title("📈 Market Data Dashboard")
+st.write("Explore historical stock market data.")
 
-# Convert date
-df["Date"] = pd.to_datetime(df["Date"])
+# Load CSV
+@st.cache_data
+def load_data():
+    df = pd.read_csv("stock_data.csv")
+    df["Date"] = pd.to_datetime(
+        df["Date"],
+        utc=True,
+        errors="coerce"
+    )
+    return df
 
-# Stock selection
+df = load_data()
+
+# Stock Selection
 symbols = sorted(df["Symbol"].unique())
 
 selected_stock = st.selectbox(
@@ -17,15 +31,46 @@ selected_stock = st.selectbox(
     symbols
 )
 
-# Filter data
-filtered = df[df["Symbol"] == selected_stock]
+# Filter by Stock
+filtered = df[df["Symbol"] == selected_stock].copy()
+
+# Date Range Filter
+st.subheader("Date Filter")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    start_date = st.date_input(
+        "Start Date",
+        filtered["Date"].min().date()
+    )
+
+with col2:
+    end_date = st.date_input(
+        "End Date",
+        filtered["Date"].max().date()
+    )
+
+filtered = filtered[
+    (filtered["Date"] >= pd.Timestamp(start_date, tz="UTC"))
+    &
+    (filtered["Date"] <= pd.Timestamp(end_date, tz="UTC"))
+]
+
+# Safety Check
+if filtered.empty:
+    st.warning("No data available for the selected date range.")
+    st.stop()
 
 # Metrics
 latest_price = filtered["Close"].iloc[-1]
 highest_price = filtered["High"].max()
 lowest_price = filtered["Low"].min()
+avg_volume = filtered["Volume"].mean()
 
-col1, col2, col3 = st.columns(3)
+st.subheader(f"{selected_stock} Summary")
+
+col1, col2, col3, col4 = st.columns(4)
 
 col1.metric(
     "Latest Price",
@@ -42,21 +87,52 @@ col3.metric(
     f"${lowest_price:.2f}"
 )
 
-# Price chart
-st.subheader("Closing Price Trend")
-st.line_chart(
-    filtered.set_index("Date")["Close"]
+col4.metric(
+    "Average Volume",
+    f"{avg_volume:,.0f}"
 )
 
-# Volume chart
-st.subheader("Trading Volume")
-st.bar_chart(
-    filtered.set_index("Date")["Volume"]
-)
+# Price Chart
+st.subheader("📊 Closing Price Trend")
 
-# Recent records
-st.subheader("Latest Data")
+price_chart = filtered.set_index("Date")["Close"]
+
+st.line_chart(price_chart)
+
+# Volume Chart
+st.subheader("📦 Trading Volume")
+
+volume_chart = filtered.set_index("Date")["Volume"]
+
+st.bar_chart(volume_chart)
+
+# OHLC Data
+st.subheader("Market Statistics")
+
+stats_col1, stats_col2 = st.columns(2)
+
+with stats_col1:
+    st.write(f"**Average Open:** ${filtered['Open'].mean():.2f}")
+    st.write(f"**Average High:** ${filtered['High'].mean():.2f}")
+
+with stats_col2:
+    st.write(f"**Average Low:** ${filtered['Low'].mean():.2f}")
+    st.write(f"**Average Close:** ${filtered['Close'].mean():.2f}")
+
+# Recent Data Table
+st.subheader("📋 Latest 20 Records")
+
 st.dataframe(
-    filtered.tail(10),
+    filtered.tail(20),
     use_container_width=True
+)
+
+# Download Button
+csv = filtered.to_csv(index=False)
+
+st.download_button(
+    label="⬇️ Download Filtered Data",
+    data=csv,
+    file_name=f"{selected_stock}_stock_data.csv",
+    mime="text/csv"
 )
