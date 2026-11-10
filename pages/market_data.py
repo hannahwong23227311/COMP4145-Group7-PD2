@@ -1,138 +1,189 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
+# ----------------------------------
 # Page Configuration
+# ----------------------------------
+with st.sidebar:
+
+    st.markdown("## SmartInvestor AI")
+
+    st.caption(
+        "Investment Analytics Platform"
+    )
+
+    st.divider()
+
+    st.caption(
+        "COMP4145 Project Development 2"
+    )
+
+    st.caption(
+        "Group 7"
+    )
+
 st.set_page_config(
-    page_title="Market Data Dashboard",
-    page_icon="📈",
+    page_title="Market Dashboard",
+    layout="wide"
 )
 
-st.title("📈 Market Data Dashboard")
-st.write("Explore historical stock market data.")
+# ----------------------------------
+# Load Dataset
+# ----------------------------------
 
-# Load CSV
 @st.cache_data
 def load_data():
     df = pd.read_csv("stock_data.csv")
-    df["Date"] = pd.to_datetime(
-        df["Date"],
-        utc=True,
-        errors="coerce"
-    )
+    df["Date"] = pd.to_datetime(df["Date"], utc=True)
     return df
 
 df = load_data()
 
+# ----------------------------------
+# Page Title
+# ----------------------------------
+
+st.title("Market Dashboard")
+
+st.write(
+    """
+    Explore historical stock market performance using
+    interactive visualisations and key market indicators.
+    """
+)
+
+# ----------------------------------
 # Stock Selection
-symbols = sorted(df["Symbol"].unique())
+# ----------------------------------
+
+stocks = sorted(df["Symbol"].unique())
 
 selected_stock = st.selectbox(
     "Select a Stock",
-    symbols
+    stocks
 )
 
-# Filter by Stock
 filtered = df[df["Symbol"] == selected_stock].copy()
 
-# Date Range Filter
-st.subheader("Date Filter")
+# ----------------------------------
+# Key Metrics
+# ----------------------------------
 
-col1, col2 = st.columns(2)
-
-with col1:
-    start_date = st.date_input(
-        "Start Date",
-        filtered["Date"].min().date()
-    )
-
-with col2:
-    end_date = st.date_input(
-        "End Date",
-        filtered["Date"].max().date()
-    )
-
-filtered = filtered[
-    (filtered["Date"] >= pd.Timestamp(start_date, tz="UTC"))
-    &
-    (filtered["Date"] <= pd.Timestamp(end_date, tz="UTC"))
-]
-
-# Safety Check
-if filtered.empty:
-    st.warning("No data available for the selected date range.")
-    st.stop()
-
-# Metrics
 latest_price = filtered["Close"].iloc[-1]
 highest_price = filtered["High"].max()
 lowest_price = filtered["Low"].min()
-avg_volume = filtered["Volume"].mean()
+average_volume = filtered["Volume"].mean()
 
-st.subheader(f"{selected_stock} Summary")
+st.subheader("Performance Summary")
 
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric(
-    "Latest Price",
-    f"${latest_price:.2f}"
+with col1:
+    st.metric(
+        "Latest Price",
+        f"${latest_price:.2f}"
+    )
+
+with col2:
+    st.metric(
+        "Highest Price",
+        f"${highest_price:.2f}"
+    )
+
+with col3:
+    st.metric(
+        "Lowest Price",
+        f"${lowest_price:.2f}"
+    )
+
+with col4:
+    st.metric(
+        "Average Volume",
+        f"{average_volume:,.0f}"
+    )
+
+# ----------------------------------
+# Create Charts
+# ----------------------------------
+
+price_fig = px.line(
+    filtered,
+    x="Date",
+    y="Close",
+    title=f"{selected_stock} Closing Price Trend"
 )
 
-col2.metric(
-    "Highest Price",
-    f"${highest_price:.2f}"
+price_fig.update_layout(
+    template="plotly_white",
+    height=500
 )
 
-col3.metric(
-    "Lowest Price",
-    f"${lowest_price:.2f}"
+volume_fig = px.bar(
+    filtered,
+    x="Date",
+    y="Volume",
+    title=f"{selected_stock} Trading Volume"
 )
 
-col4.metric(
-    "Average Volume",
-    f"{avg_volume:,.0f}"
+volume_fig.update_layout(
+    template="plotly_white",
+    height=500
 )
 
-# Price Chart
-st.subheader("📊 Closing Price Trend")
+# ----------------------------------
+# Tabs
+# ----------------------------------
 
-price_chart = filtered.set_index("Date")["Close"]
+tab1, tab2, tab3 = st.tabs(
+    [
+        "Price Trend",
+        "Volume Analysis",
+        "Market Data"
+    ]
+)
 
-st.line_chart(price_chart)
+with tab1:
+    st.plotly_chart(
+        price_fig,
+        use_container_width=True
+    )
 
-# Volume Chart
-st.subheader("📦 Trading Volume")
+with tab2:
+    st.plotly_chart(
+        volume_fig,
+        use_container_width=True
+    )
 
-volume_chart = filtered.set_index("Date")["Volume"]
+with tab3:
+    st.dataframe(
+        filtered.sort_values(
+            by="Date",
+            ascending=False
+        ),
+        use_container_width=True
+    )
 
-st.bar_chart(volume_chart)
+# ----------------------------------
+# Recent Records
+# ----------------------------------
 
-# OHLC Data
-st.subheader("Market Statistics")
-
-stats_col1, stats_col2 = st.columns(2)
-
-with stats_col1:
-    st.write(f"**Average Open:** ${filtered['Open'].mean():.2f}")
-    st.write(f"**Average High:** ${filtered['High'].mean():.2f}")
-
-with stats_col2:
-    st.write(f"**Average Low:** ${filtered['Low'].mean():.2f}")
-    st.write(f"**Average Close:** ${filtered['Close'].mean():.2f}")
-
-# Recent Data Table
-st.subheader("📋 Latest 20 Records")
+st.subheader("Latest Records")
 
 st.dataframe(
-    filtered.tail(20),
+    filtered.tail(10),
     use_container_width=True
 )
 
-# Download Button
-csv = filtered.to_csv(index=False)
+# ----------------------------------
+# Download Dataset
+# ----------------------------------
+
+csv_file = filtered.to_csv(index=False)
 
 st.download_button(
-    label="⬇️ Download Filtered Data",
-    data=csv,
-    file_name=f"{selected_stock}_stock_data.csv",
+    label="Download Filtered Dataset",
+    data=csv_file,
+    file_name=f"{selected_stock}_data.csv",
     mime="text/csv"
 )
