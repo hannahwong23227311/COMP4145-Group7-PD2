@@ -6,18 +6,40 @@ st.title("Stock Analysis")
 ticker = st.text_input("Enter Stock Symbol", "AAPL")
 
 if ticker:
-    stock = yf.Ticker(ticker)
 
     try:
+        stock = yf.Ticker(ticker)
+
         info = stock.info
-        current_price = info.get("currentPrice", "N/A")
 
-        st.metric("Current Price", current_price)
+        col1, col2, col3 = st.columns(3)
 
-        hist = stock.history(period="1mo")
+        col1.metric(
+            "Current Price",
+            f"${info.get('currentPrice', 'N/A')}"
+        )
 
-        st.subheader("Price History")
+        col2.metric(
+            "Market Cap",
+            f"{info.get('marketCap', 'N/A'):,}"
+        )
+
+        col3.metric(
+            "P/E Ratio",
+            info.get('trailingPE', 'N/A')
+        )
+
+        hist = stock.history(period="6mo")
+
+        st.subheader("Price Trend")
+
         st.line_chart(hist["Close"])
 
+        st.subheader("Company")
+
+        st.write(
+            info.get("longBusinessSummary", "No description available.")
+        )
+
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(e)
