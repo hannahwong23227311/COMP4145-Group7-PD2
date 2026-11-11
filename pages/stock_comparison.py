@@ -36,7 +36,7 @@ with st.sidebar:
 @st.cache_data
 def load_data():
     df = pd.read_csv("stock_data.csv")
-    df["Date"] = pd.to_datetime(df["Date"])
+    df["Date"] = pd.to_datetime(df["Date"], utc=True)
     return df
 
 df = load_data()

@@ -137,7 +137,7 @@ with col2:
 with col3:
     st.metric(
         "Core Features",
-        "5"
+        "6"
     )
 
 with col4:
@@ -181,8 +181,16 @@ with left_col:
     st.markdown("""
     <div class="feature-card">
     <h3>Portfolio Tracker</h3>
-    Monitor multiple stocks and assess portfolio value
-    through a single dashboard.
+    Track share quantities, cost basis, market value,
+    unrealised gains or losses, and allocation.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="feature-card">
+    <h3>Strategy Backtest</h3>
+    Explore a moving-average crossover strategy against
+    the included historical dataset.
     </div>
     """, unsafe_allow_html=True)
 

@@ -1,22 +1,52 @@
 # COMP4145 Project Development 2 — Idea 1
 
-Stock trading strategy and portfolio analysis prototype.
+SmartInvestor AI is a Streamlit prototype for exploring historical stock data,
+comparing securities, reviewing a sample portfolio, and testing a simple
+moving-average strategy. It is an educational tool, not a trading system or
+investment recommendation.
 
-## Local setup (Windows)
+## Run locally
 
-1. Open this repository folder in VS Code.
-2. Select the workspace interpreter: `Ctrl+Shift+P` → **Python: Select Interpreter** → `.venv`.
-3. In the VS Code terminal, install the project dependencies:
+Python 3.10 or later is recommended.
 
-   ```powershell
-   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-   ```
+```bash
+python3 -m venv .venv
+```
 
-4. When the Streamlit app is added, run it with:
+Activate the virtual environment:
 
-   ```powershell
-   .\.venv\Scripts\python.exe -m streamlit run app.py
-   ```
+```bash
+# macOS / Linux
+source .venv/bin/activate
 
-Keep API keys and other secrets out of source control. The local
-`.streamlit/secrets.toml` file is ignored by Git.
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+```
+
+Install dependencies and start the app:
+
+```bash
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
+```
+
+Streamlit opens the local app in a browser. Its navigation contains:
+
+- Market dashboard and historical data export
+- Stock analysis and two-stock comparison
+- Portfolio value, cost basis, gain/loss, and allocation
+- Moving-average crossover strategy backtest
+- Optional AI financial Q&A
+
+The AI advisor requires a valid HKBU GenAI API key entered in its password
+field. The key is sent to the configured API for each request and is not stored
+in the repository. Never commit API keys or secrets.
+
+## Data and limitations
+
+`stock_data.csv` supplies the historical data used by the dashboard,
+comparison, and backtest. The stock-analysis and portfolio pages retrieve
+recent prices through Yahoo Finance; availability and freshness are not
+guaranteed. Portfolio price retrieval is capped at 20 tickers per calculation.
+The backtest omits transaction costs, taxes, slippage, and dividends, and
+historical results do not predict future performance.
