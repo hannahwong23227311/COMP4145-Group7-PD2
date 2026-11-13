@@ -7,12 +7,13 @@ investment recommendation.
 
 ## Access and deployment status
 
-This project was verified locally, but a public hosted deployment link has not
-been confirmed at the time of writing. The local app was successfully launched
-with Streamlit at http://localhost:8501 during verification.
+The current prototype is deployed and accessible at:
 
-> Localhost access is for development and testing only and does not count as a
-> public submission link.
+https://comp4145-group7-pd2-2lvh3jwnu2xmubokdyy8nx.streamlit.app
+
+This is the public Streamlit deployment for the project. Localhost access is
+still available for development and testing with `streamlit run app.py`, but the
+hosted Streamlit URL is the public submission link.
 
 ## Run locally
 
@@ -78,7 +79,7 @@ available or that the API is permanently functional.
 ## Notes for submission
 
 - Local verification was completed successfully.
-- Public hosting and a verified public URL are still required for final
-  submission if the assignment expects a live hosted link.
+- The prototype is already deployed on Streamlit and is available at the public
+  URL above.
 - This prototype is designed for educational and learning use, not for live
   financial trading advice or automated investment decisions.
